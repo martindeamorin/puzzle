@@ -11,6 +11,11 @@
     width: 100vw;
 }
 
+.gallery-div{
+    max-width: 250px;
+    max-height: 250px;
+}
+
 #imageCreation{
     display: none;
 }
