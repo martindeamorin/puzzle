@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" th:href="@{/css/puzzle.css}" />
+    </head>
+    <body>
+        <h2 th:text="'Bienvenido al puzzle: ' + ${name}"></h2>
+        <div id="successMessage"></div>
+        <div class="grid">
+            <img th:each="image: ${images}" th:src="@{${image.getUrl()}}" th:id="${image.getId()}" class="gallery-div"/>
+        </div>
+    </body>
+    
+    <script th:src="@{/javascripts/puzzleGrid.js}"></script>
+    <script th:src="@{/javascripts/createAlert.js}"></script>
+    <script>
+        window.addEventListener("load", () => {
+            let url = window.location.pathname;
+            let id = url.substring(url.lastIndexOf('/') + 1);
+            let successMessage = document.querySelector("#successMessage")
+            window.updateGallery();
+            window.galleryDivs.forEach( e => {
+                e.addEventListener("drop", async () => {
+                    window.galleryDivs = document.querySelectorAll(".gallery-div")
+                    let imagesIds = [];
+                    window.galleryDivs.forEach(e => imagesIds.push(Number(e.id)));
+                    let verifyPuzzle = await fetch(`http://localhost:3000/puzzle/verify/${id}?imagesIds=${imagesIds}`, {
+                    method: "GET",
+                    }).then( res => res.json())
+                   
+                    if(verifyPuzzle.message === "true"){
+                        window.createAlert("Felicitaciones, ¡resolviste el puzzle!", successMessage, true)
+                        window.galleryDivs = undefined;
+                        window.updateGallery = undefined;
+                    }
+                })
+            
+            })
+
+        })
+    </script>
+</html>

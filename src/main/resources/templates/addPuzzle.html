@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Create puzzle</title>
+        <link rel="stylesheet" th:href="@{css/puzzle.css}" />
+    </head>
+    <body>
+        <h2>Crear puzzle</h2>
+        <div id="createPuzzle"></div>
+        <div id="puzzleCreation">
+            <input name="name" id="name" placeholder="Inserte nombre del puzzle" type="text">
+            <button type="submit" id="puzzleButton">Crear</button>
+        </div>
+        <div id="imageCreation">
+
+            <input name="files" id="files" type="file" multiple>
+            <div class="imageContainer">
+    
+                <div class="grid">
+    
+                </div>
+                <button id="sendImages">Guardar</button>
+    
+            </div>
+        </div>
+    </body>
+    <script th:src="@{javascripts/puzzleGrid.js}"></script>
+    <script th:src="@{javascripts/createAlert.js}"></script>
+    <script>
+        window.addEventListener("load", () => {
+            let puzzleButton = document.querySelector("#puzzleButton");
+            let puzzleCreation = document.querySelector("#puzzleCreation")
+            let imageCreation = document.querySelector("#imageCreation")
+            let createPuzzle = document.querySelector("#createPuzzle");
+            let puzzleName = document.querySelector("#name");
+            let imgInput = document.querySelector("#files");
+            let imageButton = document.querySelector("#sendImages")
+            let sendFiles = [];
+            let puzzleNameValue;
+
+            puzzleButton.addEventListener("click", () => {
+                puzzleNameValue = puzzleName.value;
+                console.log(puzzleNameValue)
+                imageCreation.style.display = "block";
+                puzzleCreation.style.display = "none";
+            })
+
+            imgInput.addEventListener("change", () => {
+                Array.from(imgInput.files).forEach((element, index) => {
+                    sendFiles.push(element)
+                    galleryContainer.innerHTML += `<img draggable="true" class="gallery-div" id="${index}" src="${URL.createObjectURL(element)}"/>`
+
+                })
+                window.galleryDivs = document.querySelectorAll(".gallery-div")
+                window.updateGallery();
+            })
+
+            imageButton.addEventListener("click", async () => {
+                window.galleryDivs = document.querySelectorAll(".gallery-div")
+                sendFiles = reOrderArray(window.galleryDivs, sendFiles);
+                let formData = new FormData();
+                for(let file of sendFiles){
+                    formData.append("files", file);
+                }
+                formData.append("name", puzzleNameValue);
+                const imageResponse = await fetch("http://localhost:3000/puzzle", {
+                method: "POST",
+                body: formData
+                }).then( res => res.json());
+                if(imageResponse.message){
+                    imageButton.style.display = "none";    
+                    imgInput.style.display = "none";
+                    createAlert("Se ha creado con éxito el puzzle", createPuzzle, true);
+
+                } else{
+                    createAlert("Algo ha salido mal", createPuzzle, false);
+                }
+            })
+
+            function reOrderArray(definitiveArray, arrayA){
+                return Array.from(definitiveArray).map(element => {
+                    return arrayA.find((e, index) => Number(element.id) === index)
+                })
+            }
+            
+        })
+    </script>
+</html>
